@@ -4,11 +4,11 @@ buffertools is a small library to print the content of an uninitialized buffer.
 
 **Example :**
 
-![](./dump.png)
+![](./docs/dump.png)
 
 ## livedump.sh
 
-![](./livedump.gif)
+![](./docs/livedump.gif)
 
 ### bufferdump
 
