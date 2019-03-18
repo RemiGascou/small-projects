@@ -2,7 +2,15 @@
 
 buffertools is a small library to print the content of an uninitialized buffer.
 
-## bufferdump
+**Example :**
+
+![](./dump.png)
+
+## livedump.sh
+
+![](./livedump.gif)
+
+### bufferdump
 
 ```c
 int bufferdump(char * buffer, int size);
@@ -10,7 +18,7 @@ int bufferdump(char * buffer, int size);
 
 Prints the content of the buffer. Also detects the first string (up to the first ```\0```)
 
-## rst
+### rst
 
 ```c
 int rst(char * buffer, int size);
@@ -19,7 +27,7 @@ int rst(char * buffer, int size);
 Fills the buffer with ```\0```.
 
 
-## fill
+### fill
 
 ```c
 int fill(char * buffer, int size, char c);
