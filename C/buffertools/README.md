@@ -1,5 +1,7 @@
 # buffertools
 
+buffertools is a small library to print the content of an uninitialized buffer.
+
 ## bufferdump
 
 ```c
