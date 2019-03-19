@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-class EnvItemize(object):
-    """docstring for EnvItemize."""
+class EnvEnumerate(object):
+    """docstring for EnvEnumerate."""
 
     def __init__(self):
-        super(EnvItemize, self).__init__()
+        super(EnvEnumerate, self).__init__()
         self.items = []
         self._itemtypes = {
-            "." : "\\item[$\\bullet$] ",
             "-" : "\\item ",
             "custom" : ""
         }
@@ -16,10 +15,10 @@ class EnvItemize(object):
     def export_latex(self):
         """Documentation for export"""
         multilinesep = "\n\t" + "\t"*(len(self._itemtypes[self.item_type])//4) + " "*(len(self._itemtypes[self.item_type])%4)
-        texdata = "\\begin{itemize}\n"
+        texdata = "\\begin{enumerate}\n"
         for item in self.items:
             texdata += "\t"+ self._itemtypes[self.item_type] + multilinesep.join(item.split("\n")) + "\n"
-        texdata += "\\end{itemize}\n\n"
+        texdata += "\\end{enumerate}\n\n"
         return texdata
 
     def set_item_type(self, new_item_type="-"):
@@ -45,7 +44,7 @@ class EnvItemize(object):
 
 
 if __name__ == '__main__':
-    eit = EnvItemize()
+    eit = EnvEnumerate()
     eit.append("Salut c'est moi")
     eit.append("Lorem ipsum dolor sit amet, consectetur adipisicing elit, \nSed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
     eit.set_item_type("-")
