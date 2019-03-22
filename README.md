@@ -1,4 +1,4 @@
-# small-projects
+# Small Projects
 Small but nice projects.
 
 # C Projects
