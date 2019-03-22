@@ -7,3 +7,5 @@ Nice but small projects.
 
 
 # Python Projects 
+
+ - ![phrack_2_latex](./Python/phrack_2_latex/) a small app to convert a ![Phrack](http://phrack.org/) article to LaTeX.
