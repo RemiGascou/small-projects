@@ -1,4 +1,4 @@
-# small-projects
+# Small Projects
 Small but nice projects.
 
 # C Projects
@@ -8,4 +8,7 @@ Small but nice projects.
 
 # Python Projects
 
+ - ![HTMLParser](./Python/HTMLParser/) a library to parse HTML.
+
  - ![phrack_2_latex](./Python/phrack_2_latex/) a small app to convert a ![Phrack](http://phrack.org/) article to LaTeX.
+ 
