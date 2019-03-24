@@ -1,6 +1,45 @@
 # -*- coding: utf-8 -*-
+import os, sys
+from lib import *
 
-from lib.Stack import Stack
+
+class Stack(object):
+    """docstring for Stack."""
+    def __init__(self):
+        super(Stack, self).__init__()
+        self.stack = []
+
+    def push(self, name, linein, attrs={}, log=False):
+        data = {
+            "name"      : name,
+            "linein"    : linein,
+            "lineout"   : -1,
+            "attrs"     : attrs
+        }
+        self.stack.append(data)
+        if log: print("[PUSH]", self.stack[-1])
+
+    def pop(self, name, lineout, log=False):
+        if len(self.stack) != 0:
+            if self.stack[-1]["name"] != name:
+                print("[WARN] First element of the stack is \"" + self.stack[-1]["name"] +"\" and not \"" + name + "\"")
+                return None
+            else:
+                data = self.stack[-1]
+                data["lineout"] = lineout
+                self.stack = self.stack[:-1]
+                if log: print("[POP_]", data)
+                return data
+        else:
+            return None
+
+    def currentstack(self):
+        stack_el_names = [e["name"] for e in self.stack]
+        if len(stack_el_names) != 0:
+            maxlen = max([len(e) for e in stack_el_names])
+            return '\n'.join(["|" + name.center(maxlen, " ") + "|" for name in stack_el_names[::-1]]) + "\n|" + "_"*maxlen + "|"
+        else:
+            return "\n|_EMPTY_STACK_|"
 
 class HTMLParser(object):
     """docstring for HTMLParser."""
@@ -19,40 +58,6 @@ class HTMLParser(object):
         else: return False
 
     def parse(self, log=False) :
-        # def extract_tag_args(line):
-        #     def keyword_args(kwargs):
-        #         #print(kwargs, len(kwargs))
-        #         while kwargs.startswith(" "): kwargs=kwargs[1:]
-        #         if "=\"" in kwargs:
-        #             keyword = kwargs.split("=\"", 1)[0]
-        #             args = kwargs[kwargs.index("\"")+1:]
-        #         elif "=\'" in kwargs:
-        #             keyword = kwargs.split("=\'", 1)[0]
-        #             args = kwargs[kwargs.index("\'")+1:]
-        #         if args.endswith("\""):   args=args[:-1]
-        #         elif args.endswith("\'"): args=args[:-1]
-        #         if " " in args: args = args.split(" ")
-        #         return keyword, args
-        #     if line.startswith("<"): line=line[1:]
-        #     if line.endswith("/>"):  line=line[:-2]
-        #     elif line.endswith(">"): line=line[:-1]
-        #     kwargs = []
-        #     print(line)
-        #     if " " in line:
-        #         tagname = line.split(" ", 1)[0]
-        #         line = line[line.index(" "):]
-        #         for e in line.split("\" ") :
-        #             if e != "":
-        #                 kw, args = keyword_args(e)
-        #                 kwargs.append([kw, args])
-        #     else:
-        #         tagname = line
-        #     # Creating attrs dict
-        #     attrs = {}
-        #     for element in kwargs:
-        #         attrs[element[0]] = element[1]
-        #     return (tagname, attrs)
-
         def tagparser(line):
             if line.startswith("<"): line=line[1:]
             if line.endswith("/>"):  line=line[:-2]
@@ -179,3 +184,32 @@ class HTMLParser(object):
             else:
                 out += "\t"*currentindent + line + "\n"
         return out
+
+
+if __name__ == '__main__':
+    url = """https://www.root-me.org/"""
+
+    os.system("wget " + url + sys.argv[1] + " -o out.html")
+
+    f = open("out.html", "r")
+    html = '\n'.join(f.readlines())
+    f.close()
+
+
+
+    hp = HTMLParser(html)
+    hp.parse(log=False)
+
+    data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
+    hp2 = HTMLParser(data_pseudo)
+    hp2.parse(log=False)
+    d = hp2.find_by_tag("img")[0]
+    pseudo = d["attrs"]["alt"]
+    logo_link = d["attrs"]["src"]
+    print("pseudo    :", pseudo)
+    print("logo_link :", url+logo_link)
+    data_score = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']][:2]
+    score = hp.to_text(data_score[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
+    print("score     :", score)
+    rank = hp.to_text(data_score[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
+    print("rank      :", rank)

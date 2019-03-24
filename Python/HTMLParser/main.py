@@ -23,5 +23,9 @@ if __name__ == '__main__':
     #print(hp.find_by_tag("h1"))
 
     #print(hp.find_by_property("itemprop"))
-
-    print(hp.find_by_property("itemprop", value="givenName"))
+    data = hp.find_by_property("itemprop", value="givenName")
+    #data = [hp.to_text(e) for e in data]
+    f = open("ouuuuut.html", "w")
+    for e in data:
+        f.write(str(e))
+    f.close()
