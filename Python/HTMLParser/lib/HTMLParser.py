@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Stack import Stack
+from lib.Stack import Stack
 
 class HTMLParser(object):
     """docstring for HTMLParser."""
@@ -9,7 +9,7 @@ class HTMLParser(object):
             while s.startswith(" ") or  s.startswith("\t") : s=s[1:]
             return s
         super(HTMLParser, self).__init__()
-        self.htmltext       = [rmsep(line) for line in htmltext.replace("</", "\n</").replace(">", ">\n").split("\n") if rmsep(line) != "\n" and rmsep(line) !=""]
+        self.htmltext       = [rmsep(line) for line in htmltext.replace("<", "\n<").replace(">", ">\n").split("\n") if rmsep(line) != "\n" and rmsep(line) !=""]
         self.tags_stack     = Stack()
         self.parsedresult   = []
 
@@ -19,32 +19,83 @@ class HTMLParser(object):
         else: return False
 
     def parse(self, log=False) :
-        def extract_tag_args(line):
-            def keyword_args(kwargs):
-                while kwargs.startswith(" "): kwargs=kwargs[1:]
-                keyword = kwargs.split("=\"", 1)[0]
-                args = kwargs[kwargs.index("\"")+1:]
-                if args.endswith("\""):   args=args[:-1]
-                elif args.endswith("\'"): args=args[:-1]
-                if " " in args: args = args.split(" ")
-                return keyword, args
+        # def extract_tag_args(line):
+        #     def keyword_args(kwargs):
+        #         #print(kwargs, len(kwargs))
+        #         while kwargs.startswith(" "): kwargs=kwargs[1:]
+        #         if "=\"" in kwargs:
+        #             keyword = kwargs.split("=\"", 1)[0]
+        #             args = kwargs[kwargs.index("\"")+1:]
+        #         elif "=\'" in kwargs:
+        #             keyword = kwargs.split("=\'", 1)[0]
+        #             args = kwargs[kwargs.index("\'")+1:]
+        #         if args.endswith("\""):   args=args[:-1]
+        #         elif args.endswith("\'"): args=args[:-1]
+        #         if " " in args: args = args.split(" ")
+        #         return keyword, args
+        #     if line.startswith("<"): line=line[1:]
+        #     if line.endswith("/>"):  line=line[:-2]
+        #     elif line.endswith(">"): line=line[:-1]
+        #     kwargs = []
+        #     print(line)
+        #     if " " in line:
+        #         tagname = line.split(" ", 1)[0]
+        #         line = line[line.index(" "):]
+        #         for e in line.split("\" ") :
+        #             if e != "":
+        #                 kw, args = keyword_args(e)
+        #                 kwargs.append([kw, args])
+        #     else:
+        #         tagname = line
+        #     # Creating attrs dict
+        #     attrs = {}
+        #     for element in kwargs:
+        #         attrs[element[0]] = element[1]
+        #     return (tagname, attrs)
+
+        def tagparser(line):
             if line.startswith("<"): line=line[1:]
             if line.endswith("/>"):  line=line[:-2]
             elif line.endswith(">"): line=line[:-1]
-            kwargs = []
-            if " " in line:
-                tagname = line.split(" ", 1)[0]
-                line = line[line.index(" "):]
-                for e in line.split("\" ") :
-                    kw, args = keyword_args(e)
-                    kwargs.append([kw, args])
-            else:
-                tagname = line
-            # Creating attrs dict
+            line = line.split(" ", 1)
+            tagname = line[0]
+            line = line[1]
+            tmp = {
+                "parsing_args" : False,
+                "expected_end" : "",
+                "kw_name" : "",
+                "kw_args" : [],
+                "kw_arg" : ""
+            }
             attrs = {}
-            for element in kwargs:
-                attrs[element[0]] = element[1]
-            return (tagname, attrs)
+
+            lastc = ""
+            for c in line:
+                #print(c, end=" ")
+                if c in ["\"", "\'"] and lastc != "\\":
+                    if tmp["parsing_args"] == True:
+                        #print("\n[END] args")
+                        tmp["kw_args"].append(tmp["kw_arg"])
+                        if len(tmp["kw_args"]) == 1 : tmp["kw_args"]=tmp["kw_args"][0]
+                        attrs[tmp["kw_name"]] = tmp["kw_args"]
+                        tmp["parsing_args"] = False
+                        tmp["kw_name"]  = ""
+                        tmp["kw_args"]  = []
+                        tmp["kw_arg"]   = ""
+                    else:
+                        #print("\n[BEGIN] args")
+                        tmp["parsing_args"] = True
+                else:
+                    if tmp["parsing_args"]:
+                        if c == " ":
+                            tmp["kw_args"].append(tmp["kw_arg"])
+                            tmp["kw_arg"] = ""
+                        else:
+                            tmp["kw_arg"] += c
+                    else:
+                        if c != " " and c != "=": tmp["kw_name"] += c
+                lastc = c
+            return tagname, attrs
         # ========================================================
         self.parsedresult = []
         for k in range(len(self.htmltext)) :
@@ -54,28 +105,55 @@ class HTMLParser(object):
             elif line.startswith("</") and line.endswith(">"):
                 tagname = line[2:-1]
                 self.parsedresult.append(self.tags_stack.pop(tagname, k))
-                if log: print(self.tags_stack.currentstack())
+                if log: print(self.tags_stack.currentstack(), "\n")
 
             elif line.startswith("<") and line.endswith("/>"):
-                tagname, attrs = extract_tag_args(line)
-                self.tags_stack.push(tagname, k, attrs)
-                self.parsedresult.append(self.tags_stack.pop(tagname, k))
-                if log: print(self.tags_stack.currentstack())
+                if " " in line:
+                    tagname, attrs = tagparser(line)
+                else:
+                    tagname = line[1:-2]
+                self.tags_stack.push(tagname, k, attrs, log)
+                self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
+                if log: print(self.tags_stack.currentstack(), "\n")
 
             elif line.startswith("<") and line.endswith(">"):
-                tagname, attrs = extract_tag_args(line)
-                self.tags_stack.push(tagname, k, attrs)
-                if log: print(self.tags_stack.currentstack())
+                if " " in line:
+                    tagname, attrs = tagparser(line)
+                else:
+                    tagname = line[1:-1]
+                self.tags_stack.push(tagname, k, attrs, log)
+                if log: print(self.tags_stack.currentstack(), "\n")
             # Sort self.parsedresult by value of key linein
             self.parsedresult = sorted(self.parsedresult, key=lambda t: t["linein"])
         return self.parsedresult
 
-    def findall_tags(self, tagname):
+    def to_text(self, entry):
+        if entry in self.parsedresult:
+            return '\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1])
+
+    def find_by_tag(self, tagname):
         if len(self.parsedresult) == 0:
             self.parse()
         out = []
         for entry in self.parsedresult:
-            if entry["name"] == tagname : out.append(self.htmltext[entry["linein"]:entry["lineout"]+1])
+            if entry["name"] == tagname : out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
+        return out
+
+    def find_by_property(self, prop, value=""):
+        if len(self.parsedresult) == 0:
+            self.parse()
+        out = []
+        if value != "":
+            for entry in self.parsedresult:
+                for key in entry["attrs"].keys():
+                    if key == prop :
+                        if entry["attrs"][key] == value:
+                            out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
+        else:
+            for entry in self.parsedresult:
+                for key in entry["attrs"].keys():
+                    if key == prop :
+                        out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
         return out
 
     def autoindent(self): # working fine
