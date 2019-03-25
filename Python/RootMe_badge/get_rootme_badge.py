@@ -1368,5 +1368,5 @@ if __name__ == '__main__':
         badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
         print("badge     :", badge)
         install_font()
-        Badge("ABCDEFGHIJKLMNOPQRSTUVWXYZ", score, rank[0], rank[1], badge).export("badge.bmp")
+        Badge(pseudo, score, rank[0], rank[1], badge).export("badge.bmp")
         os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
