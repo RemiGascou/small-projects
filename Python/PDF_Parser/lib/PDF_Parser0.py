@@ -44,8 +44,9 @@ class PDF_Parser(object):
             line = self.rawdata[k]
             if not ignore(line, parsing_state):
                 if line.endswith(b"endobj\n"):
-                    if log : print("[<OBJ] endobj\n",obj,"\n")
+                    if log : print("[<OBJ] endobj")
                     obj["location"]["line_end"] = k
+                    if log : print(obj,"\n")
                     self.parsed_result["objects"].append(obj)
                 elif line.endswith(b"obj\n"):
                     line = line.split(b" ")
@@ -59,38 +60,6 @@ class PDF_Parser(object):
                         }
                     }
         return None
-
-    def detect_sections(self, log=False):
-        sections = {
-            "header"  : {"_in":False,"begin":0,"end":0},
-            "objs"    : {"_in":False,"begin":0,"end":0},
-            "xref"    : {"_in":False,"begin":0,"end":0},
-            "trailer" : {"_in":False,"begin":0,"end":0}
-        }
-        sections["header"]["begin"] = 0;
-        sections["header"]["_in"]   = True;
-        for k in range(len(self.rawdata)):
-            line = self.rawdata[k]
-            if line.endswith(b"obj\n") and sections["header"]["_in"] == True:
-                sections["header"]["end"] = k-1;
-                sections["header"]["_in"] = False;
-                sections["objs"]["begin"] = k;
-                sections["objs"]["_in"]   = True;
-            elif line.endswith(b"xref\n") and sections["objs"]["_in"] == True:
-                sections["objs"]["end"] = k-1;
-                sections["objs"]["_in"]   = False;
-                sections["xref"]["begin"] = k;
-                sections["xref"]["_in"] = True;
-            elif line.endswith(b"trailer\n") and sections["xref"]["_in"] == True:
-                sections["xref"]["end"]   = k-1;
-                sections["xref"]["_in"]   = False;
-                sections["trailer"]["begin"] = k;
-                sections["trailer"]["_in"]   = True;
-        if sections["trailer"]["_in"] == True and sections["trailer"]["end"] == 0:
-            sections["trailer"]["end"] = k;
-        for key in sections.keys():
-            del sections[key]["_in"]
-        return sections
 
 if __name__ == '__main__':
     PDF_Parser("out.pdf")
