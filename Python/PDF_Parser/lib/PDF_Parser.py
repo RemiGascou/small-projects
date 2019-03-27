@@ -33,32 +33,44 @@ class PDF_Parser(object):
 
     def parse(self, log=False):
         """Documentation for parse"""
-        def ignore(line, parsing_state):
-            if line.startswith(b"%") and parsing_state["in_obj"]==False and parsing_state["in_stream"]==False : return True
-            else: return False
-        log = self._log or log
-        parsing_state = {"in_obj" : False, "in_stream" : False}
-        #=========================================
-        obj = {}
-        for k in range(len(self.rawdata)):
-            line = self.rawdata[k]
-            if not ignore(line, parsing_state):
-                if line.endswith(b"endobj\n"):
-                    if log : print("[<OBJ] endobj\n",obj,"\n")
-                    obj["location"]["line_end"] = k
-                    self.parsed_result["objects"].append(obj)
-                elif line.endswith(b"obj\n"):
-                    line = line.split(b" ")
-                    if log : print("[>OBJ] obj, ref="+str(line[0])+" gen_num="+str(line[1]))
-                    obj = {
-                        "location" : {"line_begin":k,"line_end":-1},
-                        "obj_data" : {
-                            "ref" : int(line[0]),
-                            "gen_num" : int(line[1]),
-                            "rawdata" : []
+        #========================================
+        def objs_parse(line_begin, line_end):
+            def ignore(line, parsing_state):
+                if line.startswith(b"%") and parsing_state["in_obj"]==False and parsing_state["in_stream"]==False : return True
+                else: return False
+            obj = {}
+            parsing_state = {"in_obj" : False, "in_stream" : False}
+            for k in range(len(self.rawdata[line_begin:line_end])):
+                line = self.rawdata[k]
+                if not ignore(line, parsing_state):
+                    if line.endswith(b"endobj\n"):
+                        parsing_state["in_obj"]=False
+                        if log : print("[<OBJ] endobj\n",obj,"\n")
+                        obj["location"]["line_end"] = k
+                        self.parsed_result["objects"].append(obj)
+                    elif line.endswith(b"obj\n"):
+                        parsing_state["in_obj"]=True
+                        line = line.split(b" ")
+                        if log : print("[>OBJ] obj, ref="+str(line[0])+" gen_num="+str(line[1]))
+                        obj = { "location" : {"line_begin":k,"line_end":-1},
+                                "obj_data" : {"ref" : int(line[0]),"gen_num" : int(line[1]),"data" : [], "stream" : []}
                         }
-                    }
-        return None
+                    elif parsing_state["in_obj"]==True:
+                        if line.endswith(b"endstream\n"):
+                            if log : print("[OBJ::<stream] endstream\n",obj,"\n")
+                            parsing_state["in_stream"] = False
+                        elif line.endswith(b"stream\n"):
+                            parsing_state["in_stream"] = True
+                        elif parsing_state["in_stream"]==False:
+                            obj["obj_data"]["data"].append(line)
+                        elif parsing_state["in_stream"]==True:
+                            obj["obj_data"]["stream"].append(line)
+
+        #=========================================
+        log = self._log or log
+        sections = self.detect_sections()
+        objs_parse(sections["objs"]["begin"], sections["objs"]["end"])
+        return self.parsed_result["objects"]
 
     def detect_sections(self, log=False):
         sections = {
