@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import zlib
+
 class PDF_Parser(object):
     """docstring for PDF_Parser."""
     def __init__(self, filename, log=False):
@@ -8,7 +10,8 @@ class PDF_Parser(object):
         self._log = log
         self.rawdata = self.__loadPDF(self.filename)
         self.parsed_result = {
-            "objects" : []
+            "objects" : [],
+            "xref" : []
         }
         self.parse()
 
@@ -28,7 +31,10 @@ class PDF_Parser(object):
         out = []
         for obj in self.parsed_result["objects"]:
             if obj["obj_data"]["ref"] == obj_ref:
-                out.append(self.rawdata[obj["location"]["line_begin"]:obj["location"]["line_end"]])
+                out.append(obj)
+                #out.append(self.rawdata[obj["location"]["line_begin"]:obj["location"]["line_end"]])
+        if len(out) == 1:
+            out = out[0]
         return out
 
     def parse(self, log=False):
@@ -103,6 +109,14 @@ class PDF_Parser(object):
         for key in sections.keys():
             del sections[key]["_in"]
         return sections
+
+    def stream_to_text(self, stream):
+        """Documentation for stream_to_text"""
+        return zlib.decompress(stream)
+
+    def text_to_stream(self, text, obj):
+        """Documentation for stream_to_text"""
+        obj["obj_data"]["stream"] = zlib.compress(text)
 
 if __name__ == '__main__':
     PDF_Parser("out.pdf")

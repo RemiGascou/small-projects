@@ -3,8 +3,8 @@
 ## Methods :
 
 ```
-autoindent()        :
-findall_tags(tag)   : extracts content between inside a tag.
+autoindent()        : Autoindent the HTML code provided
+findall_tags(tag)   : Extracts content between inside a tag.
 parse()             : Generates a table used for searching (used by findall_tags()...)
 ```
 
@@ -21,6 +21,25 @@ html = """<html><head>Heading</head><body attr1='val1'><div class='container'><d
 hp = HTMLParser(html)
 # Autoindent
 print(hp.autoindent(), "\n\n")
+```
+
+Output :
+```
+<html>
+    <head>
+        Heading
+    </head>
+    <body attr1='val1'>
+        <div class='container'>
+            <div id='id#01'>
+                Something here
+            </div>
+            <div id="id#02">
+                Something else
+            </div>
+        </div>
+    </body>
+</html>
 ```
 
 ### Find by tag
