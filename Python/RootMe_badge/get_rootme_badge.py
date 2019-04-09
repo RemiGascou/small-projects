@@ -1069,7 +1069,8 @@ def install_font():
     KrEAB0JACkUCNQglCBUIBAgqsQAHQkAKRwA9Bi0GHQYECCqxAAtCvRGADYAJgAWAAAQACSqxAA9C
     vQBAAEAAQABAAAQACSqxAwBEsSQBiFFYsECIWLEDZESxJgGIUVi6CIAAAQRAiGNUWLEDAERZWVlZ
     QApHADcGJwYXBgQMKrgB/4WwBI2xAgBEswVkBgBERAAAAAAAAAEAAAAA""".replace("\n", "")
-    with open("font.ttf", "wb") as font_file: font_file.write(base64.b64decode(b64fontfile))
+    with open("font.ttf", "wb") as font_file:
+        font_file.write(base64.b64decode(b64fontfile))
 
 class Stack(object):
     """docstring for Stack."""
@@ -1264,26 +1265,26 @@ class Badge(object):
         self.badge = badge
 
     def export(self, outfile):
-        img         = Image.new("RGB", (350,110), color=(255,255,255))
+        img         = Image.new("RGB", (300,110), color=(255,255,255))
         authorlogo  = self.border(Image.open("logo.jpg"), bordersize=1)
-        rootmelogo  = Image.open("rootmeskull.png")
+        rootmelogo  = self.png_background(Image.open("rootmeskull.png"))
         draw        = ImageDraw.Draw(img)
         fontcolor   = (0,0,0)
 
-        img.paste(rootmelogo, (img.size[0]-rootmelogo.size[0]-5, 7), rootmelogo)
+        logo_offset = [0,0]
 
-        img = self.merge(img, authorlogo, xcoord=10, ycoord=10)
-        #img = self.merge(img, rootmelogo, xcoord=img.size[0]-rootmelogo.size[0]-5, ycoord=7)
+        img = self.merge(img, authorlogo, xcoord=logo_offset[0]+10, ycoord=logo_offset[1]+10)
+        img = self.merge(img, rootmelogo, xcoord=img.size[0]-rootmelogo.size[0]-5, ycoord=7)
 
         fontcolor   = (0,0,0)
         font = ImageFont.truetype("font.ttf", 30)
-        draw.text((10+authorlogo.size[0]+10,10), self.pseudo[:18], fontcolor,font=font)
+        draw.text((logo_offset[0]+10+authorlogo.size[0]+10,logo_offset[1]+10), self.pseudo[:18], fontcolor,font=font)
 
         fontcolor   = (100,100,100)
         font = ImageFont.truetype("font.ttf", 20)
 
         draw.text(
-            (10+authorlogo.size[0]+10,10+9*authorlogo.size[1]//16),
+            (logo_offset[0]+10+authorlogo.size[0]+10,logo_offset[1]+10+9*authorlogo.size[1]//16),
             str(self.points) + " Points",
             fontcolor,
             font=font
@@ -1336,37 +1337,56 @@ class Badge(object):
                     pixels1[i,j] = (r1, g1, b1)
         return img1
 
+    def png_background(self, img, backgroundcolor=(255,255,255), alphalevel=0.5):
+        """Documentation for merge"""
+        pixels = img.load()
+        imgout = Image.new("RGB", img.size)
+        pixelsout = imgout.load()
+        for i in range(img.size[0]):
+            for j in range(img.size[1]):
+                (r, g, b, a) = pixels[i,j]
+                if a <= alphalevel:
+                    pixelsout[i,j] = (backgroundcolor[0], backgroundcolor[1], backgroundcolor[2])
+                else:
+                    pixelsout[i,j] = (int(r*(a/255)), int(g*(a/255)), int(b*(a/255)))
+        return imgout
+
 
 if __name__ == '__main__':
     url = """https://www.root-me.org/"""
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage : python3 get_rootme_badge.py PSEUDO outfile.bmp")
-    else:
-        pseudo   = sys.argv[1]
-        if len(sys.argv) == 3: out_file = sys.argv[2]
-        else : out_file = "badge.bmp"
-        os.system("wget -q \"" + url + pseudo + "?inc=score&lang=fr\" -O out.html")
-        f = open("out.html", "r")
-        html = '\n'.join(f.readlines())
-        f.close()
-        hp = HTMLParser(html)
-        hp.parse(log=False)
-        data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
-        hp2 = HTMLParser(data_pseudo)
-        hp2.parse(log=False)
-        d = hp2.find_by_tag("img")[0]
-        pseudo = d["attrs"]["alt"]
-        logo_link = d["attrs"]["src"]
-        print("pseudo    :", pseudo)
-        os.system("wget -q " + url+logo_link + " -O logo.jpg")
-        os.system("wget -q \"https://www.root-me.org/local/cache-vignettes/L48xH48/rblackGrand48-0dba3.png\" -O rootmeskull.png")
-        data_user = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']]#[:2]
-        score = hp.to_text(data_user[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-        print("score     :", score)
-        rank = hp.to_text(data_user[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
-        print("rank      :", rank[0] +"/"+ rank[1])
-        badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-        print("badge     :", badge)
-        install_font()
-        Badge(pseudo, score, rank[0], rank[1], badge).export("badge.bmp")
-        os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
+    #print("wget -q " + url + sys.argv[1] + "?inc=score&lang=fr -O out.html")
+    os.system("wget -q \"" + url + sys.argv[1] + "?inc=score&lang=fr\" -O out.html")
+
+    f = open("out.html", "r")
+    html = '\n'.join(f.readlines())
+    f.close()
+
+    hp = HTMLParser(html)
+    hp.parse(log=False)
+
+    data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
+    hp2 = HTMLParser(data_pseudo)
+    hp2.parse(log=False)
+    d = hp2.find_by_tag("img")[0]
+    pseudo = d["attrs"]["alt"]
+    logo_link = d["attrs"]["src"]
+    print("pseudo    :", pseudo)
+    print("logo_link :", url+logo_link)
+
+    os.system("wget -q " + url+logo_link + " -O logo.jpg")
+    os.system("wget -q \"https://www.root-me.org/local/cache-vignettes/L48xH48/rblackGrand48-0dba3.png\" -O rootmeskull.png")
+
+    data_user = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']]#[:2]
+    score = hp.to_text(data_user[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
+    print("score     :", score)
+
+    rank = hp.to_text(data_user[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
+    print("rank      :", rank)
+
+    badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
+    print("badge     :", badge)
+
+    install_font()
+    Badge(pseudo, score, rank[0], rank[1], "programmer").export("badge.bmp")
+
+    os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
