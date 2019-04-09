@@ -110,13 +110,5 @@ class PDF_Parser(object):
             del sections[key]["_in"]
         return sections
 
-    def stream_to_text(self, stream):
-        """Documentation for stream_to_text"""
-        return zlib.decompress(stream)
-
-    def text_to_stream(self, text, obj):
-        """Documentation for stream_to_text"""
-        obj["obj_data"]["stream"] = zlib.compress(text)
-
 if __name__ == '__main__':
     PDF_Parser("out.pdf")
