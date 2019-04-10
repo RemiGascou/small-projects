@@ -19,40 +19,6 @@ class HTMLParser(object):
         else: return False
 
     def parse(self, log=False) :
-        # def extract_tag_args(line):
-        #     def keyword_args(kwargs):
-        #         #print(kwargs, len(kwargs))
-        #         while kwargs.startswith(" "): kwargs=kwargs[1:]
-        #         if "=\"" in kwargs:
-        #             keyword = kwargs.split("=\"", 1)[0]
-        #             args = kwargs[kwargs.index("\"")+1:]
-        #         elif "=\'" in kwargs:
-        #             keyword = kwargs.split("=\'", 1)[0]
-        #             args = kwargs[kwargs.index("\'")+1:]
-        #         if args.endswith("\""):   args=args[:-1]
-        #         elif args.endswith("\'"): args=args[:-1]
-        #         if " " in args: args = args.split(" ")
-        #         return keyword, args
-        #     if line.startswith("<"): line=line[1:]
-        #     if line.endswith("/>"):  line=line[:-2]
-        #     elif line.endswith(">"): line=line[:-1]
-        #     kwargs = []
-        #     print(line)
-        #     if " " in line:
-        #         tagname = line.split(" ", 1)[0]
-        #         line = line[line.index(" "):]
-        #         for e in line.split("\" ") :
-        #             if e != "":
-        #                 kw, args = keyword_args(e)
-        #                 kwargs.append([kw, args])
-        #     else:
-        #         tagname = line
-        #     # Creating attrs dict
-        #     attrs = {}
-        #     for element in kwargs:
-        #         attrs[element[0]] = element[1]
-        #     return (tagname, attrs)
-
         def tagparser(line):
             if line.startswith("<"): line=line[1:]
             if line.endswith("/>"):  line=line[:-2]
@@ -160,22 +126,22 @@ class HTMLParser(object):
                         #out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
         return out
 
-    def autoindent(self): # working fine
+    def autoindent(self, indent="\t"): # working fine
         currentindent=0
         out = ""
         for line in self.htmltext :
             if self.to_be_ignored(line):
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
             elif line.startswith("</") and line.endswith(">"):
                 currentindent = max(currentindent-1, 0)
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
             elif line.startswith("<!--"):
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
             elif line.startswith("<") and line.endswith("/>"):
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
             elif line.startswith("<") and line.endswith(">"):
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
                 currentindent += 1
             else:
-                out += "\t"*currentindent + line + "\n"
+                out += indent*currentindent + line + "\n"
         return out
