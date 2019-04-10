@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-from latex import *
-from .Phrack2Latex import *
+from lib.latex import *
+from lib.Phrack2Latex import *
