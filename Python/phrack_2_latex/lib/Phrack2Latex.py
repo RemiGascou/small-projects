@@ -30,26 +30,29 @@ class Phrack2Latex(object):
             elif line.startswith("|=-") and line != "|=-----------------------------------------------------------------------=|\n":
                 if self.data["title"] == "" :
                     title = ''.join(line.split("[",1)[1].split("]")[:-1])
-                    print("title  :",title)
+                    #print("title  :",title)
                     self.data["title"] = title
-                    self.texdata.append(self.texcmd.title(title))
+                    self.texdata.append(self.texcmd.title(title)+"\n")
                 elif self.data["author"] == "":
                     author = ''.join(line.split("[",1)[1].split("]")[:-1])
-                    print("author :", author)
+                    #print("author :", author)
                     self.data["author"] = author
-                    self.texdata.append(self.texcmd.author(author))
+                    self.texdata.append(self.texcmd.author(author)+"\n")
             elif line.startswith("--[ ") and not line.startswith("--[ Contents"):
-                self.texdata.append(self.texcmd.section(' '.join(line.split(" ")[3:])))
+                self.texdata.append(self.texcmd.section(' '.join(line.split(" ")[3:])).replace("\n","")+"\n")
             elif line.startswith("--[ Contents"):
-                self.texdata.append(self.texcmd.tableofcontents())
+                self.texdata.append(self.texcmd.tableofcontents()+"\n")
+            elif line == "\n":
+                self.texdata.append(line)
             else:
                 self.texdata.append(self.texcmd.comment(line))
         return self.texdata
+
     def export(self, filename):
         """Documentation for export"""
         try:
             f = open(filename, "w")
-            for line in texdata:
+            for line in self.texdata:
                 f.write(line)
             f.close()
         except Exception as e:
