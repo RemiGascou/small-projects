@@ -1178,7 +1178,9 @@ class HTMLParser(object):
                 if log: print("[IGNORED]", line)
             elif line.startswith("</") and line.endswith(">"):
                 tagname = line[2:-1]
-                self.parsedresult.append(self.tags_stack.pop(tagname, k))
+                if log : print(tagname)
+                if tagname != "br":
+                    self.parsedresult.append(self.tags_stack.pop(tagname, k))
                 if log: print(self.tags_stack.currentstack(), "\n")
 
             elif line.startswith("<") and line.endswith("/>"):
@@ -1186,8 +1188,11 @@ class HTMLParser(object):
                     tagname, attrs = tagparser(line)
                 else:
                     tagname = line[1:-2]
-                self.tags_stack.push(tagname, k, attrs, log)
-                self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
+                if log : print(tagname)
+                if tagname != "br":
+                    self.tags_stack.push(tagname, k, attrs, log)
+                if tagname != "br":
+                    self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
                 if log: print(self.tags_stack.currentstack(), "\n")
 
             elif line.startswith("<") and line.endswith(">"):
@@ -1195,7 +1200,9 @@ class HTMLParser(object):
                     tagname, attrs = tagparser(line)
                 else:
                     tagname = line[1:-1]
-                self.tags_stack.push(tagname, k, attrs, log)
+                if log : print(tagname)
+                if tagname != "br":
+                    self.tags_stack.push(tagname, k, attrs, log)
                 if log: print(self.tags_stack.currentstack(), "\n")
             # Sort self.parsedresult by value of key linein
             self.parsedresult = sorted(self.parsedresult, key=lambda t: t["linein"])
@@ -1258,23 +1265,23 @@ class Badge(object):
     """docstring for Badge."""
     def __init__(self, pseudo, points, rank, maxrank, badge):
         super(Badge, self).__init__()
-        self.pseudo = pseudo
-        self.points = points
-        self.rank = rank
+        self.pseudo  = pseudo
+        self.points  = points
+        self.rank    = rank
         self.maxrank = maxrank
-        self.badge = badge
+        self.badge   = badge
 
     def export(self, outfile):
         img         = Image.new("RGB", (300,110), color=(255,255,255))
         authorlogo  = self.border(Image.open("logo.jpg"), bordersize=1)
-        rootmelogo  = self.png_background(Image.open("rootmeskull.png"))
+        rootmelogo  = Image.open("rootmeskull.png") #self.png_background(, alphalevel=0)
         draw        = ImageDraw.Draw(img)
         fontcolor   = (0,0,0)
 
         logo_offset = [0,0]
-
         img = self.merge(img, authorlogo, xcoord=logo_offset[0]+10, ycoord=logo_offset[1]+10)
-        img = self.merge(img, rootmelogo, xcoord=img.size[0]-rootmelogo.size[0]-5, ycoord=7)
+        # img = self.merge(img, rootmelogo, xcoord=img.size[0]-rootmelogo.size[0]-5, ycoord=7)
+        img.paste(rootmelogo, (img.size[0]-rootmelogo.size[0]-5,7), rootmelogo)
 
         fontcolor   = (0,0,0)
         font = ImageFont.truetype("font.ttf", 30)
@@ -1351,42 +1358,46 @@ class Badge(object):
                     pixelsout[i,j] = (int(r*(a/255)), int(g*(a/255)), int(b*(a/255)))
         return imgout
 
-
+import sys
 if __name__ == '__main__':
-    url = """https://www.root-me.org/"""
-    #print("wget -q " + url + sys.argv[1] + "?inc=score&lang=fr -O out.html")
-    os.system("wget -q \"" + url + sys.argv[1] + "?inc=score&lang=fr\" -O out.html")
+    if len(sys.argv) != 2:
+        print("Usage : python3 "+sys.argv[0]+" pseudo")
+    else :
+        file = sys.argv[1]
+        url = """https://www.root-me.org/"""
+        #print("wget -q " + url + sys.argv[1] + "?inc=score&lang=fr -O out.html")
+        os.system("wget -q \"" + url + sys.argv[1] + "?inc=score&lang=fr\" -O out.html")
 
-    f = open("out.html", "r")
-    html = '\n'.join(f.readlines())
-    f.close()
+        f = open("out.html", "r")
+        html = '\n'.join(f.readlines())
+        f.close()
 
-    hp = HTMLParser(html)
-    hp.parse(log=False)
+        hp = HTMLParser(html)
+        hp.parse(log=False)
 
-    data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
-    hp2 = HTMLParser(data_pseudo)
-    hp2.parse(log=False)
-    d = hp2.find_by_tag("img")[0]
-    pseudo = d["attrs"]["alt"]
-    logo_link = d["attrs"]["src"]
-    print("pseudo    :", pseudo)
-    print("logo_link :", url+logo_link)
+        data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
+        hp2 = HTMLParser(data_pseudo)
+        hp2.parse(log=False)
+        d = hp2.find_by_tag("img")[0]
+        pseudo = d["attrs"]["alt"]
+        logo_link = d["attrs"]["src"]
+        print("pseudo    :", pseudo)
+        print("logo_link :", url+logo_link)
 
-    os.system("wget -q " + url+logo_link + " -O logo.jpg")
-    os.system("wget -q \"https://www.root-me.org/local/cache-vignettes/L48xH48/rblackGrand48-0dba3.png\" -O rootmeskull.png")
+        os.system("wget -q " + url+logo_link + " -O logo.jpg")
+        os.system("wget -q \"https://www.root-me.org/local/cache-vignettes/L48xH48/rblackGrand48-0dba3.png\" -O rootmeskull.png")
 
-    data_user = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']]#[:2]
-    score = hp.to_text(data_user[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-    print("score     :", score)
+        data_user = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']]#[:2]
+        score = hp.to_text(data_user[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
+        print("score     :", score)
 
-    rank = hp.to_text(data_user[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
-    print("rank      :", rank)
+        rank = hp.to_text(data_user[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
+        print("rank      :", rank[0], "/", rank[1])
 
-    badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-    print("badge     :", badge)
+        badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
+        print("badge     :", badge)
 
-    install_font()
-    Badge(pseudo, score, rank[0], rank[1], "programmer").export("badge.bmp")
+        install_font()
+        Badge(pseudo, score, rank[0], rank[1], badge).export("badge.png")
 
-    os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
+        os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
