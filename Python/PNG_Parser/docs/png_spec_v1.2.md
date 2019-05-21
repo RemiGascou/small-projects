@@ -1,4 +1,39 @@
-# PNG (Portable Network Graphics) Specification, Version 1.2
+# PNG (Portable Network Graphics) Specification
+
+**Version 1.2**
+
+## Table of contents
+
+ - [Critical chunks](./png_spec_v1.2.md#critical-chunks)
+   + [IHDR Image header](./png_spec_v1.2.md#ihdr-image-header)
+   + [PLTE Palette](./png_spec_v1.2.md#plte-palette)
+   + [IDAT Image data](./png_spec_v1.2.md#idat-image-data)
+   + [IEND Image trailer](./png_spec_v1.2.md#iend-image-trailer)
+ - [Ancillary chunks](./png_spec_v1.2.md#ancillary-chunks)
+   + [Transparency information](./png_spec_v1.2.md#transparency-information)
+      + [tRNS Transparency](./png_spec_v1.2.md#trns-transparency)
+   + [Color space information](./png_spec_v1.2.md#color-space-information)
+      + [gAMA Image gamma](./png_spec_v1.2.md#gama-image-gamma)
+      + [cHRM Primary chromaticities](./png_spec_v1.2.md#chrm-primary-chromaticities)
+      + [sRGB Standard RGB color space](./png_spec_v1.2.md#srgb-standard-rgb-color-space)
+      + [iCCP Embedded ICC profile](./png_spec_v1.2.md#iccp-embedded-icc-profile)
+   + [Textual information](./png_spec_v1.2.md#textual-information)
+      + [tEXt Textual data](./png_spec_v1.2.md#text-textual-data)
+      + [zTXt Compressed textual data](./png_spec_v1.2.md#ztxt-compressed-textual-data)
+      + [TXt International textual data](./png_spec_v1.2.md#itxt-international-textual-data)
+   + [Miscellaneous information](./png_spec_v1.2.md#miscellaneous-information)
+      + [bKGD Background color](./png_spec_v1.2.md#bkgd-background-color)
+      + [pHYs Physical pixel dimensions](./png_spec_v1.2.md#phys-physical-pixel-dimensions)
+      + [sBIT Significant bits](./png_spec_v1.2.md#sbit-significant-bits)
+      + [sPLT Suggested palette](./png_spec_v1.2.md#splt-suggested-palette)
+      + [hIST Palette histogram](./png_spec_v1.2.md#hist-palette-histogram)
+      + [tIME Image last-modification time](./png_spec_v1.2.md#time-image-last-modification-time)
+- [Summary of standard chunks](./png_spec_v1.2.md#summary-of-standard-chunks)
+- [Additional chunk types](./png_spec_v1.2.md#additional-chunk-types)
+      
+      
+
+---
 
 # Chunk Specifications
 
