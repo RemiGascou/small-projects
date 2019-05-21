@@ -6,6 +6,7 @@
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
+# IDAT Image data
 
 class IDAT(object):
     """docstring for IDAT."""

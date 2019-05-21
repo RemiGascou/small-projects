@@ -6,6 +6,7 @@
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
+# IHDR Image header
 
 class IHDR(object):
     """docstring for IHDR."""

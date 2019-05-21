@@ -6,6 +6,7 @@
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
+# IEND Image trailer
 
 class IEND(object):
     """docstring for IEND."""
