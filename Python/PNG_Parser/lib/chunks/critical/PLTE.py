@@ -6,12 +6,14 @@
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
+from ..Chunk import *
+
 # PLTE Palette
 
 class PLTE(object):
     """docstring for PLTE."""
     def __init__(self,crc=0):
-        super(PLTE, self).__init__()
+        Chunk.__init__(self)
         self._import_zlib = __import__('zlib')
 
         # CRC 	                4 bytes

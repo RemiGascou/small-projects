@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File name          : IHDR
+# File name          : IEND
 # Author             : Remi GASCOU
 # Date created       : 05/05/2019
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
-# IHDR Image header
+from ..Chunk import *
 
-class IHDR(object):
-    """docstring for IHDR."""
+# IEND Image trailer
+
+class IEND(object):
+    """docstring for IEND."""
     def __init__(self, width=0, height=0, bit_depth=0, color_type=0, compression_method=0, filter_method=0, interlace_method=0, crc=0):
-        super(IHDR, self).__init__()
+        Chunk.__init__(self)
         self._import_zlib = __import__('zlib')
         # Width 	            4 bytes
         self.width              = width
@@ -53,7 +55,7 @@ class IHDR(object):
             self.set_filter_method(int(hex(ord(datain[15:16]))[2:].rjust(2,"0").upper(), 16))
             self.set_interlace_method(int(hex(ord(datain[16:17]))[2:].rjust(2,"0").upper(), 16))
             self.set_crc(int(hex(ord(datain[17:21]))[2:].rjust(2,"0").upper(), 16))
-        elif type(datain) == IHDR:
+        elif type(datain) == IEND:
             self.set_width(datain.get_width())
             self.set_height(datain.get_height())
             self.set_bit_depth(datain.get_bit_depth())
@@ -83,29 +85,29 @@ class IHDR(object):
         return out
 
     def __str__(self):
-        hex_ihdr  = ""
-        hex_ihdr += hex(self.width)[2:][:4].rjust(2*4,"0")
-        hex_ihdr += hex(self.height)[2:][:4].rjust(2*4,"0")
-        hex_ihdr += hex(self.bit_depth)[2:][:1].rjust(2*1,"0")
-        hex_ihdr += hex(self.color_type)[2:][:1].rjust(2*1,"0")
-        hex_ihdr += hex(self.compression_method)[2:][:1].rjust(2*1,"0")
-        hex_ihdr += hex(self.filter_method)[2:][:1].rjust(2*1,"0")
-        hex_ihdr += hex(self.interlace_method)[2:][:1].rjust(2*1,"0")
-        hex_ihdr += hex(self.crc)[2:][:2*4].rjust(2*4,"0")
-        out = ''.join([chr(int(hex_ihdr[2*k:2*(k+1)], 16)) for k in range(len(hex_ihdr)//2)])
-        return "IHDR"+out
+        hex_IEND  = ""
+        hex_IEND += hex(self.width)[2:][:4].rjust(2*4,"0")
+        hex_IEND += hex(self.height)[2:][:4].rjust(2*4,"0")
+        hex_IEND += hex(self.bit_depth)[2:][:1].rjust(2*1,"0")
+        hex_IEND += hex(self.color_type)[2:][:1].rjust(2*1,"0")
+        hex_IEND += hex(self.compression_method)[2:][:1].rjust(2*1,"0")
+        hex_IEND += hex(self.filter_method)[2:][:1].rjust(2*1,"0")
+        hex_IEND += hex(self.interlace_method)[2:][:1].rjust(2*1,"0")
+        hex_IEND += hex(self.crc)[2:][:2*4].rjust(2*4,"0")
+        out = ''.join([chr(int(hex_IEND[2*k:2*(k+1)], 16)) for k in range(len(hex_IEND)//2)])
+        return "IEND"+out
 
     def __bytes__(self):
-        hex_ihdr  = ""
-        hex_ihdr += hex(self.width)[2:][:2*4].rjust(2*4,"0")
-        hex_ihdr += hex(self.height)[2:][:2*4].rjust(2*4,"0")
-        hex_ihdr += hex(self.bit_depth)[2:][:2*1].rjust(2*1,"0")
-        hex_ihdr += hex(self.color_type)[2:][:2*1].rjust(2*1,"0")
-        hex_ihdr += hex(self.compression_method)[2:][:2*1].rjust(2*1,"0")
-        hex_ihdr += hex(self.filter_method)[2:][:2*1].rjust(2*1,"0")
-        hex_ihdr += hex(self.interlace_method)[2:][:2*1].rjust(2*1,"0")
-        hex_ihdr += hex(self.crc)[2:][:2*4].rjust(2*4,"0")
-        out = b"IHDR"+bytes([int(hex_ihdr[2*k:2*(k+1)], 16) for k in range(len(hex_ihdr)//2)])
+        hex_IEND  = ""
+        hex_IEND += hex(self.width)[2:][:2*4].rjust(2*4,"0")
+        hex_IEND += hex(self.height)[2:][:2*4].rjust(2*4,"0")
+        hex_IEND += hex(self.bit_depth)[2:][:2*1].rjust(2*1,"0")
+        hex_IEND += hex(self.color_type)[2:][:2*1].rjust(2*1,"0")
+        hex_IEND += hex(self.compression_method)[2:][:2*1].rjust(2*1,"0")
+        hex_IEND += hex(self.filter_method)[2:][:2*1].rjust(2*1,"0")
+        hex_IEND += hex(self.interlace_method)[2:][:2*1].rjust(2*1,"0")
+        hex_IEND += hex(self.crc)[2:][:2*4].rjust(2*4,"0")
+        out = b"IEND"+bytes([int(hex_IEND[2*k:2*(k+1)], 16) for k in range(len(hex_IEND)//2)])
         return out
 
     # *----------------------------------Get Set---------------------------------- *
@@ -177,11 +179,11 @@ class IHDR(object):
 
 
 if __name__ == '__main__':
-    i = IHDR(500, 500, 1, 2, 3, 4, 5)
+    i = IEND(500, 500, 1, 2, 3, 4, 5)
     print(bytes(i))
     print(i.infos())
 
-    n = IHDR().load(i)
+    n = IEND().load(i)
     n.update_crc()
     print(bytes(n))
     print(n.infos())

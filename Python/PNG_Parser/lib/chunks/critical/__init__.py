@@ -6,5 +6,7 @@
 # Date last modified : 05/05/2019
 # Python Version     : 3.*
 
-from .ancilliary import *
-from .critical   import *
+from .IHDR import *
+from .IDAT import *
+from .IEND import *
+from .PLTE import *
