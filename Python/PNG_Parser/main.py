@@ -14,4 +14,4 @@ if __name__ == '__main__':
         print("Usage : python3 "+sys.argv[0]+" image.png")
     else :
         image = sys.argv[1]
-        png   = PNG(image)
+        png   = PNG(image,log=True)

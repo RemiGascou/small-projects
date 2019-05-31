@@ -6,5 +6,6 @@
 # Date last modified :
 # Python Version     : 3.*
 
-from .KeywordsParser import *
-from .graph import *
+from .Edge  import *
+from .Graph import *
+from .Node  import *

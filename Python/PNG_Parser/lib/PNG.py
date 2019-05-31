@@ -26,11 +26,11 @@ class PNG(object):
             self.parse()
 
 
-    def parse(self):
+    def parse(self, log=False):
         """Documentation for parse"""
         def addchunk(chkname, buffer):
             """Documentation for new_function"""
-            if chkname == "IHDR":
+            if   chkname == "IHDR":
                 self.chunks.append(IHDR().load(bytes(buffer)))
             elif chkname == "PLTE":
                 pass
@@ -60,21 +60,44 @@ class PNG(object):
                 pass
             return None
         # ===================================================
-        if self.log : print("[LOG] Parsing rawdata ...")
+        log = log or self.log
+        if log : print("[LOG] Parsing rawdata ...")
         chunksnames = {'.'.join([str(ord(c)) for c in chk]) : chk for chk in self.chunksnames}
 
-        cnbuffer, buffer, sp = "0.0.0.0", [], []
+        buffer = {"name" : "", "data" : [], "inchunk" : False}
+
+        cnbuffer, sp = "0.0.0.0", []
         for c in self.rawdata:
             cnbuffer = '.'.join([str(e) for e in cnbuffer.split(".")[1:]+[str(c)]])
-            if cnbuffer in chunksnames or cnbuffer == ''.join([str(ord(c)) for c in "PNG"]):
-                chkname = chunksnames[cnbuffer]
-                if self.log: print("[PARSING] Found "+chkname+" lenght "+str(len(buffer)))
-                addchunk(chkname, buffer)
-                buffer = [c]
+            if cnbuffer in chunksnames or '.'.join(cnbuffer.split('.')[1:]) == '.'.join([str(ord(e)) for e in "PNG"]) :
+                buffer["inchunk"] = True
+                # if len(buffer["name"]) != 0:
+                #     addchunk(buffer["name"], buffer["data"])
+                if '.'.join(cnbuffer.split('.')[1:]) == '.'.join([str(ord(e)) for e in "PNG"]): buffer["name"] = "PNG"
+                else: buffer["name"] = chunksnames[cnbuffer]
+
+                if log : print("Found",buffer["name"].ljust(4),":",len(buffer["data"]), str(buffer["data"][:3])[:-1]+", ... ,"+str(buffer["data"][-3:])[1:])
+
+                buffer["data"] = [c]
             else:
-                buffer.append(c)
-        if len(buffer) != 0:
-            addchunk(chkname, buffer)
+                buffer["data"].append(c)
+        if len(buffer["data"]) != 0:
+            addchunk(buffer["name"], buffer["data"])
+        #===
+        # for c in self.rawdata:
+        #     cnbuffer = '.'.join([str(e) for e in cnbuffer.split(".")[1:]+[str(c)]])
+        #     if cnbuffer in chunksnames or cnbuffer == ''.join([str(ord(c)) for c in "PNG"]):
+        #         chkname = chunksnames[cnbuffer]
+        #         if self.log: print("[PARSING] Found "+chkname+" lenght "+str(len(buffer["data"])))
+        #         addchunk(chkname, buffer["data"])
+        #         print(buffer["name"])
+        #         buffer["name"] = chkname
+        #         buffer["data"] = [c]
+        #     else:
+        #         buffer["data"].append(c)
+        # if len(buffer) != 0:
+        #     addchunk(chkname, buffer["data"])
+        #===
         return self.chunks
 
     def readfile(self, filename):
