@@ -3,6 +3,6 @@
 ##
 
 ## Perspectives
-    - [ ] Detect light sources
+    - [x] Detect light sources
     - [ ] Detect intensity
     - [ ] Detect light direction
