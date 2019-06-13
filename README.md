@@ -13,7 +13,11 @@ Small and various projects.
 
 ## Python Projects
 
- - [HTMLParser](./Python/HTMLParser/) a library to parse HTML.
+ - [HTML_Parser](./Python/HTML_Parser/) a library to parse HTML.
+
+ - [PDF_Parser](./Python/PDF_Parser/) a library to parse PDF.
+
+ - [PNG_Parser](./Python/PNG_Parser/) a library to parse PNG.
 
  - [phrack_2_latex](./Python/phrack_2_latex/) a small app to convert a ![Phrack](http://phrack.org/) article to LaTeX.
 
