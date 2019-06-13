@@ -31,7 +31,7 @@ class LightDetector(object):
                 p = pixels[ne[0], ne[1]]
                 #print("  -> ",p, value)
                 value *= p[0] + p[1] + p[2]
-            return int((value/maxi) * 255)
+            return int(((maxi-value)/maxi) * 255)
         im              = Image.open(self.imagefile)
         width, height   = im.size
         npix            = numpy.array(im)
@@ -47,7 +47,10 @@ class LightDetector(object):
                 v = vscaled(voisins,pixels)
                 # Update du max connu
                 if v > self.highest: self.highest = v
-                matrix[x][y] = v, v, v
+                try:
+                    matrix[y][x] = v, v, v
+                except :
+                    pass
         self.matrix = matrix
         return self
 
