@@ -1,11 +1,15 @@
 # Small Projects
 
-Small but nice projects.
+Small and various projects.
+
+## Bash Projects
 
 ## C Projects
 
  - [buffertools](./C/buffertools/) a small library to print the content of an uninitialized buffer.
 
+
+## Malbolge Projects
 
 ## Python Projects
 
