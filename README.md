@@ -4,6 +4,8 @@ Small and various projects.
 
 ## Bash Projects
 
+ - [dirconf](./Bash/dirconf/) a small utility to use custom configuration files in directories.
+
 ## C Projects
 
  - [buffertools](./C/buffertools/) a small library to print the content of an uninitialized buffer.
