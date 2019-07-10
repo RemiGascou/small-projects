@@ -1,4 +1,11 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# File name          :
+# Author             : Remi GASCOU
+# Date created       :
+# Date last modified :
+# Python Version     : 3.*
+
 import os, sys
 import base64
 from PIL import Image
