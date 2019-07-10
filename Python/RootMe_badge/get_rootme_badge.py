@@ -1098,7 +1098,7 @@ class Stack(object):
     def pop(self, name, lineout, log=False):
         if len(self.stack) != 0:
             if self.stack[-1]["name"] != name:
-                print("[WARN] First element of the stack is \"" + self.stack[-1]["name"] +"\" and not \"" + name + "\"")
+                print("[WARN] First element of the stack is \"" + self.stack[-1]["name"] +"\" and not \"" + name + "\" at line "+str(lineout))
                 return None
             else:
                 data = self.stack[-1]
@@ -1183,6 +1183,19 @@ class HTMLParser(object):
             line = self.htmltext[k]
             if self.to_be_ignored(line):
                 if log: print("[IGNORED]", line)
+
+            elif line.replace(" ","").startswith("<img") and line.endswith(">"):
+                if " " in line:
+                    tagname, attrs = tagparser(line)
+                else:
+                    tagname = line[1:-2]
+                if log : print(tagname)
+                if tagname != "br" :
+                    self.tags_stack.push(tagname, k, attrs, log)
+                if tagname != "br" :
+                    self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
+                if log: print(self.tags_stack.currentstack(), "\n")
+
             elif line.startswith("</") and line.endswith(">"):
                 tagname = line[2:-1]
                 if log : print(tagname)
@@ -1196,9 +1209,9 @@ class HTMLParser(object):
                 else:
                     tagname = line[1:-2]
                 if log : print(tagname)
-                if tagname != "br":
+                if tagname != "br" :
                     self.tags_stack.push(tagname, k, attrs, log)
-                if tagname != "br":
+                if tagname != "br" :
                     self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
                 if log: print(self.tags_stack.currentstack(), "\n")
 
@@ -1208,11 +1221,12 @@ class HTMLParser(object):
                 else:
                     tagname = line[1:-1]
                 if log : print(tagname)
-                if tagname != "br":
+                if tagname != "br" :
                     self.tags_stack.push(tagname, k, attrs, log)
                 if log: print(self.tags_stack.currentstack(), "\n")
             # Sort self.parsedresult by value of key linein
             self.parsedresult = sorted(self.parsedresult, key=lambda t: t["linein"])
+
         return self.parsedresult
 
     def to_text(self, entry):
