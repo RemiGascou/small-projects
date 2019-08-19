@@ -10,11 +10,12 @@ from .chunks import *
 
 class PNG(object):
     """docstring for PNG."""
-    def __init__(self, filename="", log=True):
+    def __init__(self, filename="", log=False):
         super(PNG, self).__init__()
         self.log         = log
         self.filename    = filename
-        self.chunksnames = ["IHDR","PLTE","IDAT","IEND",
+        self.chunksnames = [
+            "IHDR","PLTE","IDAT","IEND",
             "bKGD","cHRM","gAMA","hIST",
             "pHYs","sBIT","tEXt","tIME",
             "tRNS","zTXt"
@@ -31,7 +32,9 @@ class PNG(object):
         def addchunk(chkname, buffer):
             """Documentation for new_function"""
             if   chkname == "IHDR":
-                self.chunks.append(IHDR().load(bytes(buffer)))
+                print(bytes(buffer)[1:-3])
+                i = IHDR().load(bytes(buffer)[1:-3])
+                self.chunks.append(i)
             elif chkname == "PLTE":
                 pass
             elif chkname == "IDAT":
@@ -71,8 +74,8 @@ class PNG(object):
             cnbuffer = '.'.join([str(e) for e in cnbuffer.split(".")[1:]+[str(c)]])
             if cnbuffer in chunksnames or '.'.join(cnbuffer.split('.')[1:]) == '.'.join([str(ord(e)) for e in "PNG"]) :
                 buffer["inchunk"] = True
-                # if len(buffer["name"]) != 0:
-                #     addchunk(buffer["name"], buffer["data"])
+                if len(buffer["name"]) != 0:
+                    addchunk(buffer["name"], buffer["data"])
                 if '.'.join(cnbuffer.split('.')[1:]) == '.'.join([str(ord(e)) for e in "PNG"]): buffer["name"] = "PNG"
                 else: buffer["name"] = chunksnames[cnbuffer]
 

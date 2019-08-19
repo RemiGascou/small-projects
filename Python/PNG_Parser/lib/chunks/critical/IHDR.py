@@ -33,6 +33,7 @@ class IHDR(Chunk):
 
     def load(self, datain):
         """Documentation for load"""
+        print(type(datain),":",len(datain))
         if type(datain) == str:
             hex_width = ''.join([hex(ord(c))[2:].rjust(2, "0") for c in datain[4:8]])
             print(datain[4:8], hex_width)
@@ -45,7 +46,7 @@ class IHDR(Chunk):
             self.set_filter_method(ord(datain[15:16]))
             self.set_interlace_method(ord(datain[16:17]))
             self.set_crc(int(''.join([hex(ord(c))[2:].rjust(2, "0") for c in datain[17:21]]), 16))
-        elif type(datain) == bytes and len(datain) == 17:
+        elif type(datain) == bytes and len(datain) == 21:
             self.set_width(int(''.join([hex(c)[2:].rjust(2,"0").upper() for c in list(datain[4:8])]), 16))
             self.set_height(int(''.join([hex(c)[2:].rjust(2,"0").upper() for c in list(datain[8:12])]), 16))
             self.set_bit_depth(int(hex(ord(datain[12:13]))[2:].rjust(2,"0").upper(), 16))
@@ -53,7 +54,8 @@ class IHDR(Chunk):
             self.set_compression_method(int(hex(ord(datain[14:15]))[2:].rjust(2,"0").upper(), 16))
             self.set_filter_method(int(hex(ord(datain[15:16]))[2:].rjust(2,"0").upper(), 16))
             self.set_interlace_method(int(hex(ord(datain[16:17]))[2:].rjust(2,"0").upper(), 16))
-            self.set_crc(int(hex(ord(datain[17:21]))[2:].rjust(2,"0").upper(), 16))
+            # self.set_crc(int(hex(ord(datain[17:21]))[2:].rjust(2,"0").upper(), 16))
+            self.set_crc(int(''.join([hex(c)[2:].rjust(2,"0").upper() for c in datain[17:21]]), 16))
         elif type(datain) == IHDR:
             self.set_width(datain.get_width())
             self.set_height(datain.get_height())
