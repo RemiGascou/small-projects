@@ -77,7 +77,7 @@ class UlamSpiral(object):
         if self.log : print("[LOG] gendata()")
         k = 1
         for c in self.coords():
-            if k % ((self.size**2)//10) == 0 and self.log : print("[LOG] Currently at "+str(round(k/(self.size**2)*100, 3))+"%") 
+            if k % ((self.size**2)//100) == 0 and self.log : print("[LOG] Currently at "+str(round(k/(self.size**2)*100, 3))+"%") 
             self.grid[c[1]][c[0]] = int(self.isPrime(k))
             k += 1
         return self.grid
