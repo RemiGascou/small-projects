@@ -19,15 +19,6 @@ if __name__ == '__main__':
         html = '\n'.join(f.readlines())
         f.close()
 
-        print("[LOG] Parsing ...")
-        hp = HTMLParser(html)
-        p  = hp.parse(log=False)
-
         print("[LOG] Autoindent ...")
-        indented = hp.autoindent()
-
-        print("[LOG] Writing indented_"+filein,"...")
-        f = open("indented_"+filein, "w")
-        for line in indented:
-            f.write(line+"\n")
-        f.close()
+        indented = HTML_Indenter(html).autoindent_colored()
+        print(indented)

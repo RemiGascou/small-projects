@@ -145,3 +145,23 @@ class HTMLParser(object):
             else:
                 out += indent*currentindent + line + "\n"
         return out
+
+    def autoindent_colored(self, indent="    "): 
+        currentindent=0
+        out = ""
+        for line in self.htmltext :
+            if self.to_be_ignored(line):
+                out += indent*currentindent + line + "\n"
+            elif line.startswith("</") and line.endswith(">"):
+                currentindent = max(currentindent-1, 0)
+                out += indent*currentindent + line + "\n"
+            elif line.startswith("<!--"):
+                out += indent*currentindent + line + "\n"
+            elif line.startswith("<") and line.endswith("/>"):
+                out += indent*currentindent + line + "\n"
+            elif line.startswith("<") and line.endswith(">"):
+                out += indent*currentindent + line + "\n"
+                currentindent += 1
+            else:
+                out += indent*currentindent + line + "\n"
+        return out
