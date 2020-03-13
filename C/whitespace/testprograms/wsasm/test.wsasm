@@ -1,0 +1,9 @@
+push
+pop
+lbl 17
+leave
+add
+sub
+add ; This is a comment
+mul
+muuuul
