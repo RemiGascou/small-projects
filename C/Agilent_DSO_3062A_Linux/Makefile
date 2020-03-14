@@ -1,7 +1,0 @@
-
-
-all :
-
-build :
-
-clean :

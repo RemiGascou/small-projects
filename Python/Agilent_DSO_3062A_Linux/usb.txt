@@ -1,0 +1,6 @@
+[75435.227422] usb 2-1.8.4: new full-speed USB device number 13 using ehci-pci
+[75435.338133] usb 2-1.8.4: New USB device found, idVendor=0400, idProduct=c55d, bcdDevice= 0.01
+[75435.338138] usb 2-1.8.4: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[75435.338141] usb 2-1.8.4: Product: DSO3000USB
+[75435.338143] usb 2-1.8.4: Manufacturer: Agilent
+
