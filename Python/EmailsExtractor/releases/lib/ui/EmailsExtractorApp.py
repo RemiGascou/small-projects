@@ -26,8 +26,8 @@ class EmailsExtractorApp(QMainWindow):
         self.top       = 10
         self.width     = 640
         self.height    = 200
-        self.contacts_file = "/home/hermes/Downloads/contacts.csv"
-        self.emails_file   = "/home/hermes/Downloads/e.txt"
+        self.contacts_file = ""
+        self.emails_file   = ""
         self._initUI()
 
     def _initUI(self):

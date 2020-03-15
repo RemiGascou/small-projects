@@ -16,7 +16,7 @@ def appinfos_get_name() -> str:
     return "EmailsExtractor"
 
 def appinfos_get_version() -> str:
-    return "v.0.2.1"
+    return "v.1.0.1"
 
 def appinfos_get_credits() -> str:
     return "\u00A9" + "2020 - Rémi GASCOU"
