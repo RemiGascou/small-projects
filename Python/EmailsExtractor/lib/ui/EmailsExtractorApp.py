@@ -7,6 +7,7 @@
 # Python Version     : 3.*
 
 import sys
+import pyperclip
 from lib.core           import AppInfos
 from lib.ui.windows     import *
 from lib.ui.widgets     import *
@@ -106,26 +107,31 @@ class EmailsExtractorApp(QMainWindow):
         helpMenu.addAction(aboutButton)
 
     def convert(self):
-        if self.contacts_file != "" and self.emails_file != "":
+        if len(self.contacts_file) != 0:
             f = open(self.contacts_file, "r")
             contacts_lines = f.readlines()
             f.close()
 
             emails = [l.split(",")[-1].replace("\n","") for l in contacts_lines[1:]]
-
-            f = open(self.emails_file, "w")
-            f.write(';'.join(emails)+"\n")
-            f.close()
+            pyperclip.copy(';'.join(emails)+"\n")
+            if len(self.emails_file) != 0:
+                f = open(self.emails_file, "w")
+                f.write(';'.join(emails)+"\n")
+                f.close()
 
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
-            msgBox.setText("%d emails extracted !" % len(emails))
-            msgBox.setWindowTitle("Emails extracted")
+            msgBox.setText("<b>%d</b> emails extraits !\nLa liste d'emails est copiée dans le presse-papier." % len(emails))
+            msgBox.setWindowTitle("Information")
             msgBox.setStandardButtons(QMessageBox.Ok)
             returnValue = msgBox.exec()
-
         else:
-            pass
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Warning)
+            msgBox.setText("No CSV file given.")
+            msgBox.setWindowTitle("Warning")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            returnValue = msgBox.exec()
         return
 
     def setText(self, text, var): var = text
