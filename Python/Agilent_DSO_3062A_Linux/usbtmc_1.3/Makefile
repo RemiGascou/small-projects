@@ -1,6 +1,6 @@
 .PHONY : all clean build_kernel_module test
 
-MODULE := src/agilent_dso_3000_usb.c
+MODULE := usbtmc.c
 
 #=============================================================s
 

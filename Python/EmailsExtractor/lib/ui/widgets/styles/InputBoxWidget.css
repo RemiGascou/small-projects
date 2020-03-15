@@ -1,0 +1,11 @@
+QPlainTextEdit {
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    height: 25px;
+}
+QPushButton {
+    height: 100%;
+}
+QGridLayout {
+    margin:0;
+    padding:0;
+}

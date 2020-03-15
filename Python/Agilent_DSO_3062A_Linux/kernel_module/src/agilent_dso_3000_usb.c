@@ -11,7 +11,7 @@ MODULE_AUTHOR("Remi GASCOU");
 MODULE_DESCRIPTION("Agilent DSO 3000 X Series USB");
 MODULE_VERSION("0.2");
 
-#define DEVICE_NAME "agilent_dso_3000_usb"
+#define DEVICE_NAME    "agilent_dso_3000_usb"
 #define MSG_BUFFER_LEN 1024
 
 #define USB_AGILENT_DSO_3000_VENDOR_ID        0x0400 // Agilent Technologies
@@ -22,8 +22,8 @@ static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
-static int agilent_dso_3000_usb_probe(struct usb_interface *interface, const struct usb_device_id *id);
-static void agilent_dso_3000_usb_disconnect(struct usb_interface *interface);
+static int agilent_dso_3000_usb_probe(struct usb_interface * interface, const struct usb_device_id * id);
+static void agilent_dso_3000_usb_disconnect(struct usb_interface * interface);
 
 // This structure points to all of the device functions
 static struct file_operations file_ops = {
