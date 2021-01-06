@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File name          :
-# Author             : Remi GASCOU
+# Author             :
 # Date created       :
 # Date last modified :
 # Python Version     : 3.*
 
 import os, sys
 import base64
-from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw
+import time
+from PIL import Image, ImageFont, ImageDraw
+from bs4 import BeautifulSoup
+import requests
 
 def install_font():
     b64fontfile = """AAEAAAASAQAABAAgRFNJRwAAAAEAAOyYAAAACEdERUYU+hVAAAABLAAAAHRHUE9TET15+AAAAaAA
@@ -1079,223 +1080,382 @@ def install_font():
     with open("font.ttf", "wb") as font_file:
         font_file.write(base64.b64decode(b64fontfile))
 
-class Stack(object):
-    """docstring for Stack."""
-    def __init__(self):
-        super(Stack, self).__init__()
-        self.stack = []
-
-    def push(self, name, linein, attrs={}, log=False):
-        data = {
-            "name"      : name,
-            "linein"    : linein,
-            "lineout"   : -1,
-            "attrs"     : attrs
-        }
-        self.stack.append(data)
-        if log: print("[PUSH]", self.stack[-1])
-
-    def pop(self, name, lineout, log=False):
-        if len(self.stack) != 0:
-            if self.stack[-1]["name"] != name:
-                print("[WARN] First element of the stack is \"" + self.stack[-1]["name"] +"\" and not \"" + name + "\" at line "+str(lineout))
-                return None
-            else:
-                data = self.stack[-1]
-                data["lineout"] = lineout
-                self.stack = self.stack[:-1]
-                if log: print("[POP_]", data)
-                return data
-        else:
-            return None
-
-    def currentstack(self):
-        stack_el_names = [e["name"] for e in self.stack]
-        if len(stack_el_names) != 0:
-            maxlen = max([len(e) for e in stack_el_names])
-            return '\n'.join(["|" + name.center(maxlen, " ") + "|" for name in stack_el_names[::-1]]) + "\n|" + "_"*maxlen + "|"
-        else:
-            return "\n|_EMPTY_STACK_|"
-
-class HTMLParser(object):
-    """docstring for HTMLParser."""
-    def __init__(self, htmltext):
-        def rmsep(s):
-            while s.startswith(" ") or  s.startswith("\t") : s=s[1:]
-            return s
-        super(HTMLParser, self).__init__()
-        self.htmltext       = [rmsep(line) for line in htmltext.replace("<", "\n<").replace(">", ">\n").split("\n") if rmsep(line) != "\n" and rmsep(line) !=""]
-        self.tags_stack     = Stack()
-        self.parsedresult   = []
-
-    def to_be_ignored(self,line):
-        if line == "<!DOCTYPE html>": return True
-        elif line.startswith("<!--"): return True
-        else: return False
-
-    def parse(self, log=False) :
-        def tagparser(line):
-            if line.startswith("<"): line=line[1:]
-            if line.endswith("/>"):  line=line[:-2]
-            elif line.endswith(">"): line=line[:-1]
-            line = line.split(" ", 1)
-            tagname = line[0]
-            line = line[1]
-            tmp = {
-                "parsing_args" : False,
-                "expected_end" : "",
-                "kw_name" : "",
-                "kw_args" : [],
-                "kw_arg" : ""
-            }
-            attrs = {}
-
-            lastc = ""
-            for c in line:
-                #print(c, end=" ")
-                if c in ["\"", "\'"] and lastc != "\\":
-                    if tmp["parsing_args"] == True:
-                        #print("\n[END] args")
-                        tmp["kw_args"].append(tmp["kw_arg"])
-                        if len(tmp["kw_args"]) == 1 : tmp["kw_args"]=tmp["kw_args"][0]
-                        attrs[tmp["kw_name"]] = tmp["kw_args"]
-                        tmp["parsing_args"] = False
-                        tmp["kw_name"]  = ""
-                        tmp["kw_args"]  = []
-                        tmp["kw_arg"]   = ""
-                    else:
-                        #print("\n[BEGIN] args")
-                        tmp["parsing_args"] = True
-                else:
-                    if tmp["parsing_args"]:
-                        if c == " ":
-                            tmp["kw_args"].append(tmp["kw_arg"])
-                            tmp["kw_arg"] = ""
-                        else:
-                            tmp["kw_arg"] += c
-                    else:
-                        if c != " " and c != "=": tmp["kw_name"] += c
-                lastc = c
-            return tagname, attrs
-        # ========================================================
-        self.parsedresult = []
-        for k in range(len(self.htmltext)) :
-            line = self.htmltext[k]
-            if self.to_be_ignored(line):
-                if log: print("[IGNORED]", line)
-
-            elif line.replace(" ","").startswith("<img") and line.endswith(">"):
-                if " " in line:
-                    tagname, attrs = tagparser(line)
-                else:
-                    tagname = line[1:-2]
-                if log : print(tagname)
-                if tagname != "br" :
-                    self.tags_stack.push(tagname, k, attrs, log)
-                if tagname != "br" :
-                    self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
-                if log: print(self.tags_stack.currentstack(), "\n")
-
-            elif line.startswith("</") and line.endswith(">"):
-                tagname = line[2:-1]
-                if log : print(tagname)
-                if tagname != "br":
-                    self.parsedresult.append(self.tags_stack.pop(tagname, k))
-                if log: print(self.tags_stack.currentstack(), "\n")
-
-            elif line.startswith("<") and line.endswith("/>"):
-                if " " in line:
-                    tagname, attrs = tagparser(line)
-                else:
-                    tagname = line[1:-2]
-                if log : print(tagname)
-                if tagname != "br" :
-                    self.tags_stack.push(tagname, k, attrs, log)
-                if tagname != "br" :
-                    self.parsedresult.append(self.tags_stack.pop(tagname, k, log))
-                if log: print(self.tags_stack.currentstack(), "\n")
-
-            elif line.startswith("<") and line.endswith(">"):
-                if " " in line:
-                    tagname, attrs = tagparser(line)
-                else:
-                    tagname = line[1:-1]
-                if log : print(tagname)
-                if tagname != "br" :
-                    self.tags_stack.push(tagname, k, attrs, log)
-                if log: print(self.tags_stack.currentstack(), "\n")
-            # Sort self.parsedresult by value of key linein
-            self.parsedresult = sorted(self.parsedresult, key=lambda t: t["linein"])
-
-        return self.parsedresult
-
-    def to_text(self, entry):
-        if entry in self.parsedresult:
-            return '\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1])
-
-    def find_by_tag(self, tagname):
-        if len(self.parsedresult) == 0:
-            self.parse()
-        out = []
-        for entry in self.parsedresult:
-            if entry["name"] == tagname :
-                out.append(entry)
-                #out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
-        return out
-
-    def find_by_property(self, prop, value=""):
-        if len(self.parsedresult) == 0:
-            self.parse()
-        out = []
-        if value != "":
-            for entry in self.parsedresult:
-                for key in entry["attrs"].keys():
-                    if key == prop :
-                        if entry["attrs"][key] == value:
-                            out.append(entry)
-                            #out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
-        else:
-            for entry in self.parsedresult:
-                for key in entry["attrs"].keys():
-                    if key == prop :
-                        out.append(entry)
-                        #out.append('\n'.join(self.htmltext[entry["linein"]:entry["lineout"]+1]))
-        return out
-
-    def autoindent(self): # working fine
-        currentindent=0
-        out = ""
-        for line in self.htmltext :
-            if self.to_be_ignored(line):
-                out += "\t"*currentindent + line + "\n"
-            elif line.startswith("</") and line.endswith(">"):
-                currentindent = max(currentindent-1, 0)
-                out += "\t"*currentindent + line + "\n"
-            elif line.startswith("<!--"):
-                out += "\t"*currentindent + line + "\n"
-            elif line.startswith("<") and line.endswith("/>"):
-                out += "\t"*currentindent + line + "\n"
-            elif line.startswith("<") and line.endswith(">"):
-                out += "\t"*currentindent + line + "\n"
-                currentindent += 1
-            else:
-                out += "\t"*currentindent + line + "\n"
-        return out
+def create_rootmeskull():
+    data = """iVBORw0KGgoAAAANSUhEUgAAAlMAAAJTCAYAAAAsQZPoAAAABmJLR0QA/wD/AP+gvaeTAABO6ElE
+    QVR42uzdd7QdVd2H8efe9BASSgi9BQFDJzRpUqQLCtKlSAdFBSkCAgqiCAoiIiXk3tClF0GlV+lF
+    QHrvvYUaCCnvH/vc1xhyc8+Z2dPOeT5r7bVcS3LOnN/smfnemT17gyRJkiRJkiRJkiRJkiRJkiRJ
+    kiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJ
+    kiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJ
+    kiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJ
+    kiRJkiRJkiRJkiRJkqTiDAQWB1YD1gFWAr4O9C35dvcFZgZ6uwslSVKe+gMbAn8EHgUmd9O+rP3/
+    fwE2AHoVuM1DgR2AMcADwMdTbes7wGPAhcBuwALuZkmSFNtMwCHAm9MJUNNrrwOHAkNy3OZvApcD
+    XyTY3ruBzYB2d70kSUqjHfgZ8GHCEDV1ew/YI+OQsjhwU6TtfZJwJ06SJKlh8wI3RgolU7frgGEZ
+    BL9DgPGRt3UScBowyC4hSZLqtRzwbkZBqqu9DCwWaXsHAldlvL1P1gKmJEnSdH0D+CDjYDLlY7+l
+    Um7vjMAdOW3vC8CCdhFJktSdJYCPcgomXe01YL6E29sXuD7n7X0FmMOuIkmSptYfeDjnYNLV7iHZ
+    3FQnFLS9N1PsdA+SJKmERhUUTLra4Q1u7/qEweFFbe9hdhlJktRl+RTB5AvgecLcTI8DnyT8nM+o
+    fzxSf+CZhN/zNHBFLTyeRxhv9WXC3z2/XUeSJAH8I0GYuBXYmq9OGdAbWBs4F5jY4GeeXuf27t3g
+    504AOuj+7cGhhPm0Gn2DscOuI0mSVmwwQHxUC1H1GEljd5C+oOf5p9oJb9U1MmB8uTq3d5YGg+WX
+    wHC7kCRJre0vDYSHt2sBqRGzAPc28B379PB569LYVAZzNri9vYBzyG6slyRJaiJthMkz671rtFrC
+    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
+    """.replace("\n", "").replace(" ", "")
+    with open("rootmeskull.png", "wb") as f:
+        f.write(base64.b64decode(data))
 
 class Badge(object):
     """docstring for Badge."""
-    def __init__(self, pseudo, points, rank, maxrank, badge):
+    def __init__(self, pseudo, points, status, rank, maxrank, badge):
         super(Badge, self).__init__()
         self.pseudo  = pseudo
         self.points  = points
         self.rank    = rank
         self.maxrank = maxrank
         self.badge   = badge
+        self.status  = status
 
     def export(self, outfile):
-        img         = Image.new("RGB", (300,110), color=(255,255,255))
-        authorlogo  = self.border(Image.open("logo.jpg"), bordersize=1)
-        rootmelogo  = Image.open("rootmeskull.png") #self.png_background(, alphalevel=0)
+        img         = Image.new("RGB", (320,117), color=(255,255,255))
+        authorlogo  = self.border(Image.open("logo.jpg").resize((96,96)), bordersize=1)
+        rootmelogo  = Image.open("rootmeskull.png").resize((48,48)) #self.png_background(, alphalevel=0)
         draw        = ImageDraw.Draw(img)
         fontcolor   = (0,0,0)
 
@@ -1305,6 +1465,15 @@ class Badge(object):
         img.paste(rootmelogo, (img.size[0]-rootmelogo.size[0]-5,7), rootmelogo)
 
         fontcolor   = (0,0,0)
+        if status.startswith("admin") :
+            fontcolor   = (40,40,40)   # Admin
+        elif status.startswith("premium") :
+            fontcolor   = (255,0,0)    # Premium
+        elif status.startswith("contributeur") :
+            fontcolor   = (222,119,15) # Member
+        elif status.startswith("visiteur") :
+            fontcolor   = (0,204,0)    # Visitor
+
         font = ImageFont.truetype("font.ttf", 30)
         draw.text((logo_offset[0]+10+authorlogo.size[0]+10,logo_offset[1]+10), self.pseudo[:18], fontcolor,font=font)
 
@@ -1321,7 +1490,7 @@ class Badge(object):
         fontcolor   = (50,50,50)
 
         draw.text(
-            (10, img.size[1]-30),
+            (authorlogo.size[0]+20, img.size[1]-30),
             str(self.badge),
             fontcolor,
             font=font
@@ -1340,7 +1509,6 @@ class Badge(object):
 
         img = self.border(img, bordersize=2)
         img.save(outfile)
-
 
     def border(self, img, bordersize=1, bordercolor=(0,0,0)):
         pixels = img.load()
@@ -1379,46 +1547,34 @@ class Badge(object):
                     pixelsout[i,j] = (int(r*(a/255)), int(g*(a/255)), int(b*(a/255)))
         return imgout
 
-import sys
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage : python3 "+sys.argv[0]+" pseudo")
     else :
-        file = sys.argv[1]
-        url = """https://www.root-me.org/"""
-        #print("wget -q " + url + sys.argv[1] + "?inc=score&lang=fr -O out.html")
-        os.system("wget -q \"" + url + sys.argv[1] + "?inc=score&lang=fr\" -O out.html")
+        s = requests.Session()
+        r = s.get("https://www.root-me.org/"+sys.argv[1]+"?inc=score&lang=fr")
+        r.close()
+        soup   = BeautifulSoup(r.content,'lxml')
+        pseudo = soup.find('h1').find('img')['alt']
+        avatar = "https://www.root-me.org/"+soup.find('h1').find('img')['src']
+        print("pseudo :", pseudo)
+        print("avatar :", avatar)
 
-        f = open("out.html", "r")
-        html = '\n'.join(f.readlines())
-        f.close()
+        os.system("wget -q '%s' -O logo.jpg" % avatar)
 
-        hp = HTMLParser(html)
-        hp.parse(log=False)
+        spans = soup.findAll('span',attrs={'class':['color1','txxl']})
+        score = int(bytes(spans[0].text.strip(),'UTF-8').split(b'\xc2')[0].decode('utf-8'))
+        print("score  :", score)
+        rank = spans[1].text.strip().split("/")
+        print("rank   :", rank[0], "/", rank[1])
+        level = spans[2].text.strip()
+        print("level  :", level)
 
-        data_pseudo = hp.to_text(hp.find_by_property("itemprop", value="givenName")[0])
-        hp2 = HTMLParser(data_pseudo)
-        hp2.parse(log=False)
-        d = hp2.find_by_tag("img")[0]
-        pseudo = d["attrs"]["alt"]
-        logo_link = d["attrs"]["src"]
-        print("pseudo    :", pseudo)
-        print("logo_link :", url+logo_link)
-
-        os.system("wget -q " + url+logo_link + " -O logo.jpg")
-        os.system("wget -q \"https://www.root-me.org/local/cache-vignettes/L48xH48/rblackGrand48-0dba3.png\" -O rootmeskull.png")
-
-        data_user = [e for e in hp.find_by_tag("span") if e["attrs"]["class"] == ['color1', 'tl']]#[:2]
-        score = hp.to_text(data_user[0]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-        print("score     :", score)
-
-        rank = hp.to_text(data_user[1]).replace("\n", "").replace("<span class=\"gris\">", "").replace("<span class=\"color1 tl\">", "").replace("</span></span>", "").split("/")
-        print("rank      :", rank[0], "/", rank[1])
-
-        badge = hp.to_text(data_user[2]).replace("\n", "").split("&nbsp;")[0].split("<span class=\"color1 tl\">")[1]
-        print("badge     :", badge)
+        r = s.get("https://www.root-me.org/"+sys.argv[1]+"?inc=info&lang=fr")
+        status = r.content.split(b'Statut')[1].split(b'>',1)[1].split(b'</span>',1)[0].decode('UTF-8').lower()
+        print("status :", status)
 
         install_font()
-        Badge(pseudo, score, rank[0], rank[1], badge).export("badge.png")
-
-        os.system("rm logo.jpg out.html rootmeskull.png font.ttf")
+        create_rootmeskull()
+        Badge(pseudo, score, status, rank[0], rank[1], level).export("badge_%s.png" % pseudo.lower())
+        os.system("rm logo.jpg rootmeskull.png font.ttf")
